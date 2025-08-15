@@ -6,6 +6,7 @@
       "DOM.Iterable",
       "ES2022"
     ],
+    "types": ["node"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -26,6 +27,7 @@
       "@/*": [
         "./src/*"
       ],
+      "@payload-types": ["./src/payload-types.ts"],
       "@payload-config": [
         "./src/payload.config.ts"
       ]
@@ -33,11 +35,11 @@
     "target": "ES2022",
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
+  "next-env.d.ts",
+  "**/*.ts",
+  "**/*.tsx",
+  ".next/types/**/*.ts"
+],
   "exclude": [
     "node_modules"
   ],
