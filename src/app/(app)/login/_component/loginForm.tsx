@@ -33,29 +33,49 @@ export default function LoginForm(): ReactElement {
     }
   }
   
-  return <div className="flex gap-8 min-h-full flex-col justify-center items-center">
-    <div className="text-3xl">
-      Login
-    </div>
-    <div className="w-full mx-auto sm:max-w-sm">
+  return (
+  <main className="min-h-svh grid place-items-center px-4">
+    <div className="w-full mx-auto max-w-sm">
+      <h1 className="mb-6 text-center text-3xl">Login</h1>
+
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
           <label htmlFor="email">Email</label>
-          <input className="rounded w-full textInput" name="email" id="email" type="email" />
+          <input
+            className="rounded w-full textInput"
+            name="email"
+            id="email"
+            type="email"
+            required
+          />
         </div>
-        <div className="flex flex-col gap-2 mb-8">
+
+        <div className="flex flex-col gap-2 mb-6">
           <label htmlFor="password">Password</label>
-          <input className="rounded w-full textInput" name="password" id="password" type="password" />
+          <input
+            className="rounded w-full textInput"
+            name="password"
+            id="password"
+            type="password"
+            required
+          />
         </div>
-        {error && <div className="text-red-500">{error}</div>}
+
+        {error && <div className="text-red-500 text-sm">{error}</div>}
+
         <SubmitButton loading={isPending} text="Login" />
       </form>
-      <p className="mt-10 text-center text-sm text-gray-400">
-          Don't have an account?{' '}
-          <Link href="/signup" className="font-semibold leading-6 text-headBlue-500 hover:text-headBlue-400">
-            Sign Up
-          </Link>
-        </p>
+
+      <p className="mt-8 text-center text-sm text-gray-400">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/signup"
+          className="font-semibold leading-6 text-headBlue-500 hover:text-headBlue-400"
+        >
+          Sign Up
+        </Link>
+      </p>
     </div>
-  </div>
+  </main>
+);
 }
