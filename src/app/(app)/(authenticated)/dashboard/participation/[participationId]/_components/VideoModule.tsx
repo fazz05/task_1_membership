@@ -8,17 +8,17 @@ import { markProgress } from "../_actions/MarkProgress"
 
 interface VideoModuleProps{
     module: any
-    particaption: Participation
+    participation: Participation
     onCompleted: (nextIndex: number) => void
 }
 
-export default function VideoModule({module, particaption, onCompleted}: VideoModuleProps){
+export default function VideoModule({module, participation, onCompleted}: VideoModuleProps){
     const [loading, setLoading] = useState(false)
 
     async function handleNextModule(){
         setLoading(true)
         try{
-            let updateParticipation = await markProgress(particaption);
+            let updateParticipation = await markProgress(participation);
             if(updateParticipation && updateParticipation.progress){
                 onCompleted(updateParticipation.progress);
             }else{

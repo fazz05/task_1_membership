@@ -34,21 +34,25 @@ export default function QuizModule({
     setUserAnswers(temp);
   }
 
-  async function handleNextModule() {
-    setLoading(true);
-    try {
-      const updateParticipation = await markProgress(participation);
-      if (updateParticipation && updateParticipation.progress) {
-        onCompleted(updateParticipation.progress);
-      } else {
-        console.error("Error updating participation progress");
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+    async function handleNextModule() {
+  if (loading) return;              // guard
+  setLoading(true);
+  try {
+    const res = await markProgress(participation.id);
+
+    if (typeof res?.progress === 'number') {
+      // kirim index berikutnya ke parent
+      onCompleted(res.progress);
+    } else {
+      console.error('Error updating participation progress (no progress returned)');
     }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
   }
+}
+
 
   function checkAnswer(answerIndex: number) {
     let correct = true;

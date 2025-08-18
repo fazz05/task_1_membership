@@ -1,38 +1,36 @@
 // src/collections/Participations.ts
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from 'payload';
 
+// src/collections/Participations.ts
 export const Participations: CollectionConfig = {
   slug: 'participation',
   admin: { useAsTitle: 'id' },
   access: {
-    read: ({ req }) => ({ customer: { equals: req.user?.id } }),
-    create: ({ req }) => !!req.user,
-    update: ({ req }) => ({ customer: { equals: req.user?.id } }),
-    delete: ({ req }) => ({ customer: { equals: req.user?.id } }),
+    read: ({ req }) => {
+      if (req.user?.collection === 'users') return true; // admin
+      return { customer: { equals: req.user?.id } };
+    },
+    create: ({ req, data }) => {
+      if (req.user?.collection === 'users') return true;
+      return data?.customer === req.user?.id;
+    },
+    update: ({ req }) => {
+      if (req.user?.collection === 'users') return true;
+      return { customer: { equals: req.user?.id } };
+    },
+    delete: ({ req }) => req.user?.collection === 'users',
   },
   fields: [
-    {
-      name: 'course',
-      type: 'relationship',
-      relationTo: 'courses',
-      required: true,
-      index: true,
-    },
+    { name: 'course', type: 'relationship', relationTo: 'courses', required: true, index: true },
     {
       name: 'customer',
       type: 'relationship',
-      relationTo: 'users', // <-- ganti dari 'customers' ke 'users'
+      relationTo: 'customers', // ⬅ pastikan INI 'customers'
       required: true,
       index: true,
     },
-    {
-      name: 'progress',
-      type: 'number',
-      defaultValue: 0,
-      min: 0,
-      max: 100,
-    },
+    { name: 'progress', type: 'number', defaultValue: 0, min: 0, max: 100 },
   ],
-}
+};
 
-export default Participations
+export default Participations;

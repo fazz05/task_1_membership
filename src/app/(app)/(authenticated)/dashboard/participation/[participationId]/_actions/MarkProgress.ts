@@ -1,35 +1,54 @@
-"use server"
+'use server';
 
-import { Participation } from "@/payload-types";
-import { getPayload } from "payload";
-import configPromise from '@payload-config';
-import { getUser } from "@/app/(app)/(authenticated)/_actions/getUsers";
+import { headers } from 'next/headers';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { getPayload } from 'payload';
+import config from '@payload-config';
+import { getUser } from '@/app/(app)/(authenticated)/_actions/getUsers';
+import { countLearnables } from './learnables';
 
-export async function markProgress(participation: Participation) {
-    const payload = await getPayload({config: configPromise});
-    const user = await getUser();
 
-    if(!participation || typeof participation.progress !== "number"){
-        console.error("Invalid participation data");
-        return null;
-    }
+type Input = string | { id?: string; mode?: 'bump' | 'complete' };
 
-    const nextProgress = participation.progress + 1;
+export async function markProgress(input: Input) {
+  const participationId = typeof input === 'string' ? input : input?.id;
+  const mode = typeof input === 'string' ? 'bump' : (input?.mode ?? 'bump');
+  if (!participationId) return null;
 
-    try {
-        const UpdateRes = await payload.update({
-            collection: 'participation',
-            id: participation.id,
-            data: {
-                progress: nextProgress
-            },
-            overrideAccess: false,
-            user: user
-        })
+  const payload = await getPayload({ config });
+  const h = await headers();
+  const reqHeaders = Object.fromEntries(h.entries());
+  const user = await getUser();
+  if (!user?.id) return null;
 
-        return UpdateRes;
-    } catch (err) {
-        console.error("Error updating participation progress", err);
-        return null;
-    }
+  const doc = await payload.findByID({
+    collection: 'participation',
+    id: participationId,
+    depth: 1,
+    overrideAccess: true,
+  });
+
+  const ownerId = typeof doc.customer === 'string' ? doc.customer : (doc.customer as any)?.id;
+  if (ownerId !== user.id) return null;
+
+  const total = countLearnables(doc.course);
+  const current = typeof doc.progress === 'number' ? doc.progress : 0;
+  const next = mode === 'complete' ? total : Math.min(current + 1, total);
+
+  if (next !== current) {
+    await payload.update({
+      collection: 'participation',
+      id: participationId,
+      data: { progress: next },
+      overrideAccess: true,
+      req: { headers: reqHeaders as any },
+    });
+  }
+
+  // Refresh UI
+  revalidateTag(`participation:${ownerId}`);
+  revalidatePath('/dashboard');
+  revalidatePath(`/dashboard/participation/${participationId}`);
+
+  return { progress: next };
 }

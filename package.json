@@ -35,6 +35,7 @@
     "lucide-react": "^0.539.0",
     "mustache": "^4.2.0",
     "next": "15.4.5",
+    "nodemailer": "^7.0.5",
     "payload": "3.49.1",
     "react": "19.1.1",
     "react-dom": "19.1.1",

@@ -1,67 +1,92 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { getUser } from '../../(app)/(authenticated)/_actions/getUsers'
-import * as ejs from 'ejs'                           // <-- aman tanpa esModuleInterop
-import type { Course, Participation } from '@/payload-types'
+import { NextResponse } from 'next/server';
+import { getPayload } from 'payload';
+import config from '@payload-config';
+import { getUser } from '@/app/(app)/(authenticated)/_actions/getUsers';
+import * as ejs from 'ejs';
+import type { Course, Participation } from '@/payload-types';
+import { countLearnables } from '@/app/(app)/(authenticated)/dashboard/participation/[participationId]/_actions/learnables';
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
-// Helper: Buffer -> ArrayBuffer murni (bukan SharedArrayBuffer)
+// helper: Buffer -> ArrayBuffer (aman untuk Response body)
 function bufferToArrayBuffer(buf: Buffer): ArrayBuffer {
-  const ab = new ArrayBuffer(buf.byteLength)
-  new Uint8Array(ab).set(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength))
-  return ab
+  const ab = new ArrayBuffer(buf.byteLength);
+  new Uint8Array(ab).set(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength));
+  return ab;
 }
 
-export const GET = async (
-  _req: NextRequest,
-  { params }: { params: { id: string } }      // <-- langsung object, bukan Promise
-) => {
-  let browser: import('playwright').Browser | null = null
+export async function GET(
+  req: Request,
+  ctx: { params: Promise<{ id: string }> }   // ⬅️ Next 15: params adalah Promise
+) {
+  let browser: import('playwright').Browser | null = null;
 
   try {
-    const participationId = params.id
+    const { id } = await ctx.params;          // ⬅️ wajib di-await
 
-    // Auth + data
-    const user = await getUser()
-    if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    // --- Auth
+    const user = await getUser();
+    if (!user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
 
-    const payload = await getPayload({ config: configPromise })
-    const participation = (await payload.findByID({
+    // --- Ambil participation + course (fresh)
+    const payload = await getPayload({ config });
+    const reqHeaders = Object.fromEntries(new Headers(req.headers).entries());
+
+    const doc = (await payload.findByID({
       collection: 'participation',
-      id: participationId,
-      overrideAccess: false,
-      user,
-    })) as Participation | null
+      id,
+      depth: 1,
+      overrideAccess: true,                    // ⬅️ bypass ACL, validasi owner manual
+      req: { headers: reqHeaders as any },
+    })) as Participation;
 
-    if (!participation) {
-      return NextResponse.json({ message: 'Participation not found' }, { status: 404 })
-    }
-
-    const course = participation.course as Course
-    const last = course.curriculum.at(-1)
-    if (last?.blockType !== 'finish') {
-      return NextResponse.json({ message: 'No certificate' }, { status: 400 })
-    }
-    if (!('template' in last) || !last.template) {
-      return NextResponse.json({ message: 'Template missing' }, { status: 400 })
-    }
-    if (participation.progress !== course.curriculum.length - 1) {
-      return NextResponse.json({ message: 'Course not finished' }, { status: 400 })
+    if (!doc) {
+      return NextResponse.json({ message: 'Participation not found' }, { status: 404 });
     }
 
-    // Render HTML (pastikan template sudah pakai tag EJS: <%= name %> dst)
-    const htmlRaw = ejs.render(last.template, {
+    // --- Validasi owner
+    const ownerId = typeof doc.customer === 'string' ? doc.customer : (doc.customer as any)?.id;
+    if (ownerId !== user.id) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+
+    const course = doc.course as Course | undefined;
+    if (!course) {
+      return NextResponse.json({ message: 'Course missing' }, { status: 400 });
+    }
+
+    // --- Pastikan ada blok certificate/finish di akhir (opsional tapi bagus)
+    const last = Array.isArray(course.curriculum) ? course.curriculum.at(-1) : undefined;
+    const lastType = (last as any)?.blockType ?? (last as any)?.type;
+    if (lastType !== 'finish' && lastType !== 'certificate') {
+      return NextResponse.json({ message: 'No certificate block' }, { status: 400 });
+    }
+    if (!('template' in (last as any)) || !(last as any).template) {
+      return NextResponse.json({ message: 'Template missing' }, { status: 400 });
+    }
+
+    // --- Gating: progress >= total learnable (exclude certificate)
+    const totalLearnable = countLearnables(course);
+    const progress = typeof doc.progress === 'number' ? doc.progress : 0;
+    if (progress < totalLearnable) {
+      return NextResponse.json({ message: 'Course not finished' }, { status: 400 });
+    }
+
+    // --- Render HTML dengan EJS
+    const htmlRaw = ejs.render((last as any).template, {
       name: user.email,
       courseTitle: course.title,
-      date: new Date(participation.updatedAt).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric',
+      date: new Date(doc.updatedAt as any).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       }),
       issuer: 'All About Payload',
-    })
+    });
 
     const html = `<!doctype html>
 <html>
@@ -73,38 +98,38 @@ export const GET = async (
   <title>Certificate</title>
 </head>
 <body>${htmlRaw}</body>
-</html>`
+</html>`;
 
-    // Generate PDF via Playwright
-    const { chromium } = await import('playwright')
-    browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] })
-    const page = await browser.newPage()
-    await page.setContent(html, { waitUntil: 'networkidle' })
-    await page.emulateMedia({ media: 'screen' })
+    // --- Generate PDF via Playwright
+    const { chromium } = await import('playwright');
+    browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle' });
+    await page.emulateMedia({ media: 'screen' });
 
     const pdfBuffer: Buffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       landscape: false,
-    })
+    });
 
-    const body = bufferToArrayBuffer(pdfBuffer)
-
-    return new NextResponse(body, {
+    // --- Response PDF
+    const fileTitle = String(course.title ?? 'Course').replace(/[\\/:*?"<>|]/g, '-');
+    return new NextResponse(bufferToArrayBuffer(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Certificate-${course.title}.pdf"`,
+        'Content-Disposition': `attachment; filename="Certificate-${fileTitle}.pdf"`,
         'Cache-Control': 'no-store',
       },
-    })
+    });
   } catch (e: any) {
-    console.error('generate-pdf error:', e)
+    console.error('generate-pdf error:', e);
     return NextResponse.json(
       { message: 'Internal Server Error', error: String(e?.message ?? e) },
       { status: 500 }
-    )
+    );
   } finally {
-    try { await browser?.close() } catch {}
+    try { await browser?.close(); } catch {}
   }
 }
