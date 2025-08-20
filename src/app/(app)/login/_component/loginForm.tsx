@@ -1,81 +1,82 @@
-"use client";
+'use client'
 
-import { useRouter } from "next/navigation";
-import React, { FormEvent, ReactElement, useState } from "react";
-import { login, LoginResponse } from "../_actions/login";
-import Link from "next/link";
-import SubmitButton from "../../components/SubmitButton";
+import { useRouter } from 'next/navigation'
+import React, { FormEvent, ReactElement, useState } from 'react'
+import { login, LoginResponse } from '../_actions/login'
+import Link from 'next/link'
+import SubmitButton from '../../components/SubmitButton'
 
 export default function LoginForm(): ReactElement {
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsPending(true);
-    setError(null);
+    event.preventDefault()
+    setIsPending(true)
+    setError(null)
 
-    const formData = new FormData(event.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const formData = new FormData(event.currentTarget)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
 
-    const result: LoginResponse = await login({ email, password });
+    const result: LoginResponse = await login({ email, password })
 
-    setIsPending(false);
+    setIsPending(false)
 
     if (result.success) {
-      // Redirect manually after successful login
-      router.push("/dashboard");
+      router.push('/dashboard')
     } else {
-      // Display the error message
-      setError(result.error || "Login failed");
+      setError(result.error || 'Login failed')
     }
   }
-  
+
   return (
-  <main className="min-h-svh grid place-items-center px-4">
-    <div className="w-full mx-auto max-w-sm">
-      <h1 className="mb-6 text-center text-3xl">Login</h1>
+    <main className="min-h-screen grid place-items-center bg-black-50 px-4">
+      <div className="w-full max-w-sm rounded-lg border border-black-200 bg-white p-6 shadow-sm">
+        <h1 className="mb-6 text-center text-2xl font-semibold text-gray-800">Login</h1>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="email">Email</label>
-          <input
-            className="rounded w-full textInput"
-            name="email"
-            id="email"
-            type="email"
-            required
-          />
-        </div>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
 
-        <div className="flex flex-col gap-2 mb-6">
-          <label htmlFor="password">Password</label>
-          <input
-            className="rounded w-full textInput"
-            name="password"
-            id="password"
-            type="password"
-            required
-          />
-        </div>
+          <div>
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
 
-        {error && <div className="text-red-500 text-sm">{error}</div>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <SubmitButton loading={isPending} text="Login" />
-      </form>
+          <SubmitButton loading={isPending} text="Login" />
+        </form>
 
-      <p className="mt-8 text-center text-sm text-gray-400">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/signup"
-          className="font-semibold leading-6 text-headBlue-500 hover:text-headBlue-400"
-        >
-          Sign Up
-        </Link>
-      </p>
-    </div>
-  </main>
-);
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don’t have an account?{' '}
+          <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+            Sign Up
+          </Link>
+        </p>
+      </div>
+    </main>
+  )
 }
+
+// Dari sini

@@ -1,7 +1,6 @@
-// src/collections/Participations.ts
+
 import type { CollectionConfig } from 'payload';
 
-// src/collections/Participations.ts
 export const Participations: CollectionConfig = {
   slug: 'participation',
   admin: { useAsTitle: 'id' },
@@ -25,7 +24,7 @@ export const Participations: CollectionConfig = {
     {
       name: 'customer',
       type: 'relationship',
-      relationTo: 'customers', // ⬅ pastikan INI 'customers'
+      relationTo: 'customers', 
       required: true,
       index: true,
     },

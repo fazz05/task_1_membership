@@ -11,7 +11,7 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 
 import { s3Storage } from '@payloadcms/storage-s3'
-import { nodemailerAdapter } from '@payloadcms/email-nodemailer'   
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { Customers } from './collections/Customers'
 import { Courses } from './collections/courses/Courses'
 import Participations from './collections/courses/Participations'
@@ -24,7 +24,7 @@ const req = (k: string) => {
   if (!v) throw new Error(`Missing env ${k}`)
   return v
 }
-const reqTrim = (k: string) => req(k).trim() // hindari spasi di ENV (khususnya SMTP_PASS)
+const reqTrim = (k: string) => req(k).trim()
 
 export default buildConfig({
   admin: {
@@ -32,30 +32,27 @@ export default buildConfig({
     importMap: { baseDir: path.resolve(dirname) },
   },
 
-  // penting untuk generate link reset /admin/reset/:token yang benar
   serverURL: req('PAYLOAD_PUBLIC_SERVER_URL'),
 
-  // === EMAIL via Nodemailer (Gmail App Password) ===
-    email: nodemailerAdapter({
+  email: nodemailerAdapter({
     defaultFromAddress: req('SMTP_FROM_EMAIL'),
     defaultFromName: req('SMTP_FROM_NAME'),
     transportOptions: {
       host: req('SMTP_HOST'),
-      port: Number(req('SMTP_PORT')),              // 465 untuk SMTPS
-      secure: Number(req('SMTP_PORT')) === 465,    // true jika 465
+      port: Number(req('SMTP_PORT')),
+      secure: Number(req('SMTP_PORT')) === 465,
       auth: {
         user: req('SMTP_USER'),
-        pass: reqTrim('SMTP_PASS'),                // trim untuk hindari spasi
+        pass: reqTrim('SMTP_PASS'),
       },
     },
   }),
 
-
   collections: [Users, Media, Customers, Courses, Participations],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: req('PAYLOAD_SECRET'),
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
-  db: mongooseAdapter({ url: process.env.DATABASE_URI || '' }),
+  db: mongooseAdapter({ url: req('DATABASE_URI') }),
   sharp,
 
   plugins: [
