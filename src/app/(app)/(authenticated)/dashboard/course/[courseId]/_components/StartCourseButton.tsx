@@ -13,7 +13,7 @@ type Props = {
 }
 
 export default function StartCourseButton({ courseId, onStarted }: Props) {
-  const router = useRouter(); // <-- WAJIB PAKAI KURUNG
+  const router = useRouter()
 
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -31,7 +31,6 @@ export default function StartCourseButton({ courseId, onStarted }: Props) {
 
       onStarted?.()
       router.push(`/dashboard/participation/${participation.id}`)
-      // router.refresh() // kalau halaman target baca data server & perlu refresh
     } catch (err) {
       console.error(err)
       setStatus('error')

@@ -14,10 +14,13 @@ const Layout: FC<LayoutProps> = async ({ children }) => {
     return null
   }
 
-  return <div>
-    <Navbar></Navbar>
+  return (
+    <div>
+      <Navbar></Navbar>
 
-  {children}</div>;
+      {children}
+    </div>
+  )
 }
 
 export default Layout

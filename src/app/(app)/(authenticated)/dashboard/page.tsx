@@ -12,10 +12,10 @@ import ResumeButton from './course/[courseId]/_components/ResumeButton'
 const page = async () => {
   const payload = await getPayload({ config: configPromise })
 
-  // get the user
+
   const user = await getUser()
 
-  // get courses
+ 
   let courses: Course[] = []
 
   try {

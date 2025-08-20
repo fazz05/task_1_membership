@@ -1,21 +1,25 @@
-import React, { ReactElement } from "react";
-import Logo from "@/assets/logo.svg"
-import Image from "next/image";
-import Link from "next/link";
+import React, { ReactElement } from 'react'
+import Logo from '@/assets/logo.svg'
+import Image from 'next/image'
+import Link from 'next/link'
 
-export default function page(): ReactElement{
-  return <div className="flex flex-col mx-auto w-full max-w-4xl px-4">
-    <div className="flex items-center justify-between py-4">
-      <Image src={Logo} alt="Logo" width={24} height={24} />
-      <Link href="/login">Login</Link>
-    </div>
-    <header className="py-16 border-b border-gray-700">
+export default function page(): ReactElement {
+  return (
+    <div className="flex flex-col mx-auto w-full max-w-4xl px-4">
+      <div className="flex items-center justify-between py-4">
+        <Image src={Logo} alt="Logo" width={24} height={24} />
+        <Link href="/login">Login</Link>
+      </div>
+      <header className="py-16 border-b border-gray-700">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl font-bold mb-4">Learn Payload CMS</h1>
           <p className="text-lg mb-6 text-gray-400">
             Build modern applications with our Payload CMS course.
           </p>
-          <Link href={"/signup"} className="px-6 py-2 border border-white hover:bg-white hover:text-black transition">
+          <Link
+            href={'/signup'}
+            className="px-6 py-2 border border-white hover:bg-white hover:text-black transition"
+          >
             Get Started
           </Link>
         </div>
@@ -55,7 +59,10 @@ export default function page(): ReactElement{
           <p className="text-gray-400 mb-6">
             Take the first step towards mastering Payload CMS today.
           </p>
-          <Link href={"/signup"} className="px-6 py-2 border border-white hover:bg-white hover:text-black transition">
+          <Link
+            href={'/signup'}
+            className="px-6 py-2 border border-white hover:bg-white hover:text-black transition"
+          >
             Enroll Now
           </Link>
         </div>
@@ -67,5 +74,6 @@ export default function page(): ReactElement{
           <p className="text-gray-500">&copy; 2025 10x Media GmbH. All rights reserved.</p>
         </div>
       </footer>
-  </div>
+    </div>
+  )
 }

@@ -1,88 +1,82 @@
-"use client";
+'use client'
 
-import { Participation } from "@/payload-types";
-import { useEffect, useState } from "react";
-import NextButton from "./NextButton";
-import { markProgress } from "../_actions/MarkProgress";
-import { HiDocumentSearch } from "react-icons/hi";
+import { Participation } from '@/payload-types'
+import { useEffect, useState } from 'react'
+import NextButton from './NextButton'
+import { markProgress } from '../_actions/MarkProgress'
+import { HiDocumentSearch } from 'react-icons/hi'
 
 interface QuizModuleProps {
-  module: any;
-  participation: Participation;
-  onCompleted: (nextIndex: number) => void;
+  module: any
+  participation: Participation
+  onCompleted: (nextIndex: number) => void
 }
 
-export default function QuizModule({
-  module,
-  participation,
-  onCompleted,
-}: QuizModuleProps) {
-  const [message, setMessage] = useState<string>("");
-  const [userAnswers, setUserAnswers] = useState<boolean[][]>([]);
-  const [loading, setLoading] = useState(false);
-  const [allAnswerCorrect, setAllAnswerCorrect] = useState(false);
+export default function QuizModule({ module, participation, onCompleted }: QuizModuleProps) {
+  const [message, setMessage] = useState<string>('')
+  const [userAnswers, setUserAnswers] = useState<boolean[][]>([])
+  const [loading, setLoading] = useState(false)
+  const [allAnswerCorrect, setAllAnswerCorrect] = useState(false)
 
   useEffect(() => {
-    setEmptyUseranswers();
-  }, []);
+    setEmptyUseranswers()
+  }, [])
 
   function setEmptyUseranswers() {
-    let temp: any[] = [];
+    let temp: any[] = []
     temp = module.questions.map((question: any) => {
-      return question.answers.map(() => false);
-    });
-    setUserAnswers(temp);
+      return question.answers.map(() => false)
+    })
+    setUserAnswers(temp)
   }
 
-    async function handleNextModule() {
-  if (loading) return;              // guard
-  setLoading(true);
-  try {
-    const res = await markProgress(participation.id);
+  async function handleNextModule() {
+    if (loading) return
+    setLoading(true)
+    try {
+      const res = await markProgress(participation.id)
 
-    if (typeof res?.progress === 'number') {
-      // kirim index berikutnya ke parent
-      onCompleted(res.progress);
-    } else {
-      console.error('Error updating participation progress (no progress returned)');
+      if (typeof res?.progress === 'number') {
+        onCompleted(res.progress)
+      } else {
+        console.error('Error updating participation progress (no progress returned)')
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
   }
-}
-
 
   function checkAnswer(answerIndex: number) {
-    let correct = true;
-    const length = module.questions[answerIndex].answers.length;
+    let correct = true
+    const length = module.questions[answerIndex].answers.length
 
     for (let n = 0; n < length; n++) {
-      const val = module.questions[answerIndex].answers[n].true ? true : false;
+      const val = module.questions[answerIndex].answers[n].true ? true : false
       if (val !== userAnswers[answerIndex][n]) {
-        correct = false;
-        break;
+        correct = false
+        break
       }
     }
-    return correct;
+    return correct
   }
 
   function checkAllAnswers() {
     for (let i = 0; i < module.questions.length; i++) {
       if (!checkAnswer(i)) {
-        return false;
+        return false
       }
     }
-    return true;
+    return true
   }
 
   function handleCheckAnswers() {
     if (checkAllAnswers()) {
-      setAllAnswerCorrect(true);
-      setUserAnswers([]);
+      setAllAnswerCorrect(true)
+      setUserAnswers([])
     } else {
-      setMessage("Some answers are incorrect. Multiple answers can be correct");
+      setMessage('Some answers are incorrect. Multiple answers can be correct')
     }
   }
 
@@ -99,22 +93,17 @@ export default function QuizModule({
               </p>
 
               {question.answers.map((answer: any, answerIndex: number) => {
-                const inputId = `answer-${index}-${answerIndex}`;
+                const inputId = `answer-${index}-${answerIndex}`
                 return (
-                  <div
-                    className="flex items-center cursor-pointer"
-                    key={`${index}-${answerIndex}`}
-                  >
+                  <div className="flex items-center cursor-pointer" key={`${index}-${answerIndex}`}>
                     <input
                       id={inputId}
                       type="checkbox"
                       onClick={(e) => {
-                        setMessage("");
-                        const tempAns = JSON.parse(
-                          JSON.stringify(userAnswers),
-                        );
-                        tempAns[index][answerIndex] = e.currentTarget.checked;
-                        setUserAnswers(tempAns);
+                        setMessage('')
+                        const tempAns = JSON.parse(JSON.stringify(userAnswers))
+                        tempAns[index][answerIndex] = e.currentTarget.checked
+                        setUserAnswers(tempAns)
                       }}
                       className="h-4 w-4 text-teal-400 bg-gray-100 border-gray-600 rounded-full focus:ring-2 focus:ring-teal-500"
                     />
@@ -125,10 +114,10 @@ export default function QuizModule({
                       {answer.answer}
                     </label>
                   </div>
-                );
+                )
               })}
             </div>
-          );
+          )
         })}
       </div>
 
@@ -136,11 +125,7 @@ export default function QuizModule({
 
       <div className="flex flex-col gap-4 justify-center">
         {allAnswerCorrect ? (
-          <NextButton
-            loading={loading}
-            text="Next"
-            onClick={handleNextModule}
-          />
+          <NextButton loading={loading} text="Next" onClick={handleNextModule} />
         ) : (
           <div>
             <button
@@ -155,5 +140,5 @@ export default function QuizModule({
         )}
       </div>
     </div>
-  );
+  )
 }

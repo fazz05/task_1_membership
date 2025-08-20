@@ -14,7 +14,7 @@ export default function SignupForm(): ReactElement {
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
     setIsPending(true)
-    setError(null) // Reset error state
+    setError(null)
 
     const formData = new FormData(event.currentTarget)
     const email = formData.get('email') as string
@@ -33,21 +33,18 @@ export default function SignupForm(): ReactElement {
     console.log(result)
 
     if (result.success) {
-      // Redirect manually after successful login
       router.push('/dashboard')
     } else {
-      // Display the error message
       setError(result.error || 'Login failed')
     }
   }
-  // Dari sini
+
   return (
     <main className="min-h-screen grid place-items-center bg-black-50 px-4">
       <div className="w-full max-w-sm rounded-lg border border-black-200 bg-white p-6 shadow-sm">
         <h1 className="mb-6 text-center text-2xl font-semibold text-gray-800">Sign Up</h1>
 
         <form className="space-y-4" onSubmit={onSubmit}>
-          {/* Email */}
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
               Email
@@ -61,7 +58,6 @@ export default function SignupForm(): ReactElement {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
               Password
@@ -75,7 +71,6 @@ export default function SignupForm(): ReactElement {
             />
           </div>
 
-          {/* Confirm Password */}
           <div>
             <label
               htmlFor="confirmPassword"

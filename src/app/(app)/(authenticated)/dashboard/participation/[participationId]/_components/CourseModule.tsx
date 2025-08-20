@@ -1,47 +1,26 @@
-import { Participation } from "@/payload-types";
-import VideoModule from "./VideoModule";
-import QuizModule from "./QuizModule";
-import FinishModule from "./FinishModule";
+import { Participation } from '@/payload-types'
+import VideoModule from './VideoModule'
+import QuizModule from './QuizModule'
+import FinishModule from './FinishModule'
 
 interface CourseModuleProps {
-  module?: any | null;
-  participation: Participation;
-  onCompleted: (nextIndex: number) => void;
+  module?: any | null
+  participation: Participation
+  onCompleted: (nextIndex: number) => void
 }
 
-export default function CourseModule({
-  module,
-  participation,
-  onCompleted,
-}: CourseModuleProps) {
-  // Jika module tidak ada (mis. progress == total), langsung ke certificate
-  const kind: string =
-    (module?.blockType as string) ??
-    (module?.type as string) ??
-    "finish";
+export default function CourseModule({ module, participation, onCompleted }: CourseModuleProps) {
+  const kind: string = (module?.blockType as string) ?? (module?.type as string) ?? 'finish'
 
   switch (kind) {
-    case "video":
-      return (
-        <VideoModule
-          module={module}
-          participation={participation}     
-          onCompleted={onCompleted}
-        />
-      );
-    case "quiz":
-      return (
-        <QuizModule
-          module={module}
-          participation={participation}
-          onCompleted={onCompleted}
-        />
-      );
-    case "certificate":
-    case "finish":
-      return <FinishModule participation={participation} />;
+    case 'video':
+      return <VideoModule module={module} participation={participation} onCompleted={onCompleted} />
+    case 'quiz':
+      return <QuizModule module={module} participation={participation} onCompleted={onCompleted} />
+    case 'certificate':
+    case 'finish':
+      return <FinishModule participation={participation} />
     default:
-      // fallback aman jika ada tipe baru/typo di data
-      return <FinishModule participation={participation} />;
+      return <FinishModule participation={participation} />
   }
 }

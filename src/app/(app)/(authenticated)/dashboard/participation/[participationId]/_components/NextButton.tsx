@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import type { ButtonHTMLAttributes } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai'
+import type { ButtonHTMLAttributes } from 'react'
 
 type NextButtonProps = {
-  loading?: boolean;
-  text: string;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>;
+  loading?: boolean
+  text: string
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>
 
 export default function NextButton({
   loading = false,
@@ -21,7 +21,6 @@ export default function NextButton({
       className={`relative w-full rounded-md bg-teal-500 p-2 text-black
                   disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
     >
-      {/* Sembunyikan teks saat loading tanpa geser layout */}
       <span className={loading ? 'invisible' : 'visible'}>{text}</span>
 
       <AiOutlineLoading3Quarters
@@ -30,5 +29,5 @@ export default function NextButton({
                     ${loading ? 'block animate-spin' : 'hidden'}`}
       />
     </button>
-  );
+  )
 }
