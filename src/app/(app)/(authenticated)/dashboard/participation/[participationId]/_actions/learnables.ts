@@ -1,4 +1,3 @@
-// src/lib/learnables.ts
 export type CurriculumItem = { type?: string; blockType?: string }
 
 export function countLearnables(course: any): number {
